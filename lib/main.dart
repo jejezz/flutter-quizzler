@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
+import 'quiz_brain.dart';
+
+QuizBrain quizBrain = QuizBrain();
 
 void main() {
   runApp(Quizzler());
@@ -27,6 +31,38 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+  List<Widget> scoreKeeper = [];
+
+  int questionNumber = 0;
+
+  Icon buildIcon(bool right) {
+    return Icon(
+      right ? Icons.check : Icons.close,
+      color: right ? Colors.green : Colors.red,
+    );
+  }
+
+  void checkAnswer(bool answer) {
+    setState(() {
+      if (quizBrain.hasNextQuestion()) {
+        quizBrain.nextQuestion();
+      } else if (quizBrain.isLastQuestion()) {
+        Alert(
+          context: context,
+          title: "Finished",
+          desc: "All the questions are answered",
+        ).show();
+        scoreKeeper.clear();
+        quizBrain.reset();
+        return;
+      }
+
+      scoreKeeper.add(
+        buildIcon(quizBrain.rightAnswer(answer)),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -39,7 +75,7 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'This is where the question text will go',
+                quizBrain.getQuestion(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
@@ -64,7 +100,7 @@ class _QuizPageState extends State<QuizPage> {
                 backgroundColor: MaterialStateProperty.all(Colors.green),
               ),
               onPressed: () {
-                print('yes');
+                checkAnswer(true);
               },
             ),
           ),
@@ -84,10 +120,13 @@ class _QuizPageState extends State<QuizPage> {
                 backgroundColor: MaterialStateProperty.all(Colors.red),
               ),
               onPressed: () {
-                print('no');
+                checkAnswer(false);
               },
             ),
           ),
+        ),
+        Row(
+          children: scoreKeeper,
         ),
       ],
     );
